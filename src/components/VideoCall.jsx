@@ -7,8 +7,11 @@ const VideoCall = ({
   callType,
   micActive,
   cameraActive,
+  isMuted,
   onToggleMic,
   onToggleCamera,
+  onRotateCamera,
+  onToggleMute,
   onHangUp
 }) => {
   const localVideoRef = useRef(null);
@@ -69,11 +72,11 @@ const VideoCall = ({
             <button className="call_button_large" onClick={onHangUp}>
               <img src="./utils/images/hangUp.png" alt="Hang Up" />
             </button>
-            <button className="call_button_small">
-              <img src="./utils/images/switchCameraScreenSharing.png" alt="Screen Share" />
+            <button className="call_button_small" onClick={onRotateCamera}>
+              <img src="./utils/images/switchCameraScreenSharing.png" alt="Rotate Camera" />
             </button>
-            <button className="call_button_small">
-              <img src="./utils/images/recordingStart.png" alt="Record" />
+            <button className="call_button_small" onClick={onToggleMute} style={{opacity: isMuted ? 0.6 : 1}}>
+              <img src="./utils/images/recordingStart.png" alt="Mute" />
             </button>
           </div>
         )}

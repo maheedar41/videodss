@@ -20,6 +20,8 @@ export const useWebRTC = (socket) => {
   const [cameraActive, setCameraActive] = useState(true);
   const [messagingReady, setMessagingReady] = useState(false);
   const [dialog, setDialog] = useState(null);
+  const [cameraFacingMode, setCameraFacingMode] = useState('user');
+  const [isMuted, setIsMuted] = useState(false);
 
   const peerConnectionRef = useRef(null);
   const dataChannelRef = useRef(null);
@@ -27,9 +29,13 @@ export const useWebRTC = (socket) => {
   const isInitiatorRef = useRef(false);
   const dataChannelMessageQueueRef = useRef([]);
 
-  const getLocalPreview = useCallback(async () => {
+  const getLocalPreview = useCallback(async (facingMode = 'user') => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(defaultConstraints);
+      const constraints = {
+        audio: true,
+        video: { facingMode }
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       setLocalStream(stream);
       return stream;
     } catch (err) {
@@ -448,6 +454,40 @@ export const useWebRTC = (socket) => {
     socket.emit('register_personal_code', { personalCode: code });
   };
 
+  const rotateCamera = async () => {
+    try {
+      const newFacingMode = cameraFacingMode === 'user' ? 'environment' : 'user';
+
+      if (localStream) {
+        localStream.getTracks().forEach((track) => {
+          track.stop();
+        });
+      }
+
+      const stream = await getLocalPreview(newFacingMode);
+      if (stream) {
+        setCameraFacingMode(newFacingMode);
+
+        if (peerConnectionRef.current && inCall) {
+          const videoTrack = stream.getVideoTracks()[0];
+          const sender = peerConnectionRef.current
+            .getSenders()
+            .find((s) => s.track?.kind === 'video');
+
+          if (sender && videoTrack) {
+            await sender.replaceTrack(videoTrack);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error rotating camera:', err);
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
   return {
     localStream,
     remoteStream,
@@ -459,6 +499,8 @@ export const useWebRTC = (socket) => {
     cameraActive,
     messagingReady,
     dialog,
+    isMuted,
+    cameraFacingMode,
     initiateCall,
     acceptCall,
     rejectCall,
@@ -466,6 +508,8 @@ export const useWebRTC = (socket) => {
     sendMessage,
     toggleMic,
     toggleCamera,
+    rotateCamera,
+    toggleMute,
     registerPersonalCode,
     setDialog
   };

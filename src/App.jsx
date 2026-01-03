@@ -29,6 +29,7 @@ function App() {
     cameraActive,
     messagingReady,
     dialog,
+    isMuted,
     initiateCall,
     acceptCall,
     rejectCall,
@@ -36,6 +37,8 @@ function App() {
     sendMessage,
     toggleMic,
     toggleCamera,
+    rotateCamera,
+    toggleMute,
     registerPersonalCode,
     setDialog
   } = useWebRTC(socket);
@@ -56,8 +59,11 @@ function App() {
         callType={callType}
         micActive={micActive}
         cameraActive={cameraActive}
+        isMuted={isMuted}
         onToggleMic={toggleMic}
         onToggleCamera={toggleCamera}
+        onRotateCamera={rotateCamera}
+        onToggleMute={toggleMute}
         onHangUp={hangUp}
       />
 
